@@ -158,26 +158,49 @@ class SpecificationUtilTest {
         if (expressionToAppend == null) {
             return;
         }
-        Expression<?> currentExpression = expressionToAppend;
+
+        Expression<?> currentExpression = getCurrentExpression(expressionToAppend);
+
+        appendParentPath(builder, currentExpression);
+        appendFunctionStart(builder, expressionToAppend);
+        appendExpressionName(builder, currentExpression);
+        appendFunctionEnd(builder, expressionToAppend);
+
+        builder.append('.');
+    }
+
+    private static Expression<?> getCurrentExpression(Expression<?> expressionToAppend) {
         if (expressionToAppend instanceof ParameterizedFunctionExpression<?> function) {
             List<Expression<?>> argumentExpressions = function.getArgumentExpressions();
-            currentExpression = argumentExpressions.get(0);
+            return argumentExpressions.get(0);
         }
+        return expressionToAppend;
+    }
+
+    private static void appendParentPath(StringBuilder builder, Expression<?> currentExpression) {
         if (currentExpression instanceof Path<?> path) {
             appendName(builder, path.getParentPath());
         }
+    }
+
+    private static void appendFunctionStart(StringBuilder builder, Expression<?> expressionToAppend) {
         if (expressionToAppend instanceof ParameterizedFunctionExpression<?> function) {
             builder.append(function.getFunctionName()).append('(');
         }
+    }
+
+    private static void appendExpressionName(StringBuilder builder, Expression<?> currentExpression) {
         if (currentExpression instanceof Root<?>) {
             builder.append("root");
         } else if (currentExpression instanceof PathImplementor<?> pathImplementor) {
             builder.append(pathImplementor.getAttribute().getName());
         }
+    }
+
+    private static void appendFunctionEnd(StringBuilder builder, Expression<?> expressionToAppend) {
         if (expressionToAppend instanceof ParameterizedFunctionExpression<?> function) {
             builder.append(')');
         }
-        builder.append('.');
     }
 
     private static String getName(Expression<?> expression) {
