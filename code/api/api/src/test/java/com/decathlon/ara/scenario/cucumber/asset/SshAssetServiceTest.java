@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.           *
  * You may obtain a copy of the License at                                    *
  *                                                                            *
- * 	 http://www.apache.org/licenses/LICENSE-2.0                               *
+ *     http://www.apache.org/licenses/LICENSE-2.0                             *
  *                                                                            *
  * Unless required by applicable law or agreed to in writing, software        *
  * distributed under the License is distributed on an "AS IS" BASIS,          *
@@ -17,7 +17,7 @@
 
 package com.decathlon.ara.scenario.cucumber.asset;
 
-import com.decathlon.ara.configuration.AraConfiguration;
+import com.decathlon.ara.configuration.SshAssetServiceConfig;
 import com.decathlon.ara.scenario.cucumber.asset.ssh.SshClientHelper;
 import com.decathlon.ara.scenario.cucumber.asset.ssh.SshException;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 class SshAssetServiceTest {
 
     @Mock
-    private AraConfiguration araConfiguration;
+    private SshAssetServiceConfig sshConfig;
 
     @Mock
     private FileNameService fileNameService;
@@ -52,11 +52,11 @@ class SshAssetServiceTest {
     void saveScreenshot_should_upload_file_and_return_correct_url() throws SshException {
         // GIVEN
         doReturn(sshClientHelper).when(cut).connect();
-        when(araConfiguration.getSshRemoteHomeFolder()).thenReturn("/home");
-        when(araConfiguration.getSshScreenshotSubFolder()).thenReturn("/directory");
-        when(araConfiguration.getSshHttpAccess()).thenReturn("http://access");
+        when(sshConfig.getRemoteHomeFolder()).thenReturn("/home");
+        when(sshConfig.getScreenshotSubFolder()).thenReturn("/directory");
+        when(sshConfig.getHttpAccess()).thenReturn("http://access");
         when(fileNameService.generateReportFileName("Scenario Name", "png")).thenReturn("file");
-        byte[] screenshot = new byte[] { };
+        byte[] screenshot = new byte[] {};
 
         // WHEN
         final String url = cut.saveScreenshot(screenshot, "Scenario Name");
@@ -70,8 +70,8 @@ class SshAssetServiceTest {
     void saveScreenshot_should_create_directories_only_once() throws SshException {
         // GIVEN
         doReturn(sshClientHelper).when(cut).connect();
-        when(araConfiguration.getSshRemoteHomeFolder()).thenReturn("/home");
-        when(araConfiguration.getSshScreenshotSubFolder()).thenReturn("/directory");
+        when(sshConfig.getRemoteHomeFolder()).thenReturn("/home");
+        when(sshConfig.getScreenshotSubFolder()).thenReturn("/directory");
         byte[] screenshot = new byte[] {};
 
         // WHEN
@@ -99,9 +99,9 @@ class SshAssetServiceTest {
     void saveHttpLogs_should_upload_file_and_return_correct_url() throws SshException {
         // GIVEN
         doReturn(sshClientHelper).when(cut).connect();
-        when(araConfiguration.getSshRemoteHomeFolder()).thenReturn("/home");
-        when(araConfiguration.getSshHttpLogsSubFolder()).thenReturn("/directory");
-        when(araConfiguration.getSshHttpAccess()).thenReturn("http://access");
+        when(sshConfig.getRemoteHomeFolder()).thenReturn("/home");
+        when(sshConfig.getHttpLogsSubFolder()).thenReturn("/directory");
+        when(sshConfig.getHttpAccess()).thenReturn("http://access");
         when(fileNameService.generateReportFileName("http-log", "html")).thenReturn("file");
         String html = "html";
 
@@ -117,8 +117,8 @@ class SshAssetServiceTest {
     void saveHttpLogs_should_create_directories_only_once() throws SshException {
         // GIVEN
         doReturn(sshClientHelper).when(cut).connect();
-        when(araConfiguration.getSshRemoteHomeFolder()).thenReturn("/home");
-        when(araConfiguration.getSshHttpLogsSubFolder()).thenReturn("/directory");
+        when(sshConfig.getRemoteHomeFolder()).thenReturn("/home");
+        when(sshConfig.getHttpLogsSubFolder()).thenReturn("/directory");
         String html = "any";
 
         // WHEN

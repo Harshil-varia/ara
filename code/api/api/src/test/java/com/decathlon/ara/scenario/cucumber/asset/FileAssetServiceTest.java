@@ -17,7 +17,7 @@
 
 package com.decathlon.ara.scenario.cucumber.asset;
 
-import com.decathlon.ara.configuration.AraConfiguration;
+import com.decathlon.ara.configuration.FileAssetServiceConfig;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 class FileAssetServiceTest {
 
     @Mock
-    private AraConfiguration araConfiguration;
+    private FileAssetServiceConfig fileAssetServiceConfig;
 
     @Mock
     private FileNameService fileNameService;
@@ -51,9 +51,9 @@ class FileAssetServiceTest {
         try {
             // GIVEN
             tempDirectory = Files.createTempDirectory("ara_temp_unit_test_directory_");
-            when(araConfiguration.getFileHomeFolder()).thenReturn(tempDirectory.toString());
-            when(araConfiguration.getFileScreenshotSubFolder()).thenReturn("/directory");
-            when(araConfiguration.getFileHttpAccess()).thenReturn("http://access");
+            when(fileAssetServiceConfig.getHomeFolder()).thenReturn(tempDirectory.toString());
+            when(fileAssetServiceConfig.getScreenshotSubFolder()).thenReturn("/directory");
+            when(fileAssetServiceConfig.getHttpAccess()).thenReturn("http://access");
             when(fileNameService.generateReportFileName("Scenario Name", "png")).thenReturn("file");
             byte[] screenshot = new byte[] { 0, 1, 2 };
 
@@ -74,7 +74,7 @@ class FileAssetServiceTest {
     @Test
     void saveScreenshot_should_not_fail_but_return_null_on_write_failure() {
         // GIVEN
-        when(araConfiguration.getFileHomeFolder()).thenReturn("/bin/mkdir/?/not-writable"); // ... on Unix nor on Windows
+        when(fileAssetServiceConfig.getHomeFolder()).thenReturn("/bin/mkdir/?/not-writable"); // ... on Unix nor on Windows
 
         // WHEN
         final String url = cut.saveScreenshot(new byte[] { 'a', 'n', 'y' }, "any");
@@ -89,9 +89,9 @@ class FileAssetServiceTest {
         try {
             // GIVEN
             tempDirectory = Files.createTempDirectory("ara_temp_unit_test_directory_");
-            when(araConfiguration.getFileHomeFolder()).thenReturn(tempDirectory.toString());
-            when(araConfiguration.getFileHttpLogsSubFolder()).thenReturn("/directory");
-            when(araConfiguration.getFileHttpAccess()).thenReturn("http://access");
+            when(fileAssetServiceConfig.getHomeFolder()).thenReturn(tempDirectory.toString());
+            when(fileAssetServiceConfig.getHttpLogsSubFolder()).thenReturn("/directory");
+            when(fileAssetServiceConfig.getHttpAccess()).thenReturn("http://access");
             when(fileNameService.generateReportFileName("http-log", "html")).thenReturn("file");
             String html = "html";
 
@@ -112,8 +112,8 @@ class FileAssetServiceTest {
     @Test
     void saveHttpLogs_should_not_fail_but_return_null_on_write_failure() {
         // GIVEN
-        when(araConfiguration.getFileHomeFolder()).thenReturn("/bin/mkdir/?/not-writable"); // ... on Unix nor on Windows
-        when(araConfiguration.getFileHttpLogsSubFolder()).thenReturn("/directory");
+        when(fileAssetServiceConfig.getHomeFolder()).thenReturn("/bin/mkdir/?/not-writable"); // ... on Unix nor on Windows
+        when(fileAssetServiceConfig.getHttpLogsSubFolder()).thenReturn("/directory");
 
         // WHEN
         final String url = cut.saveHttpLogs("any");

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.           *
  * You may obtain a copy of the License at                                    *
  *                                                                            *
- * 	 http://www.apache.org/licenses/LICENSE-2.0                               *
+ *     http://www.apache.org/licenses/LICENSE-2.0                             *
  *                                                                            *
  * Unless required by applicable law or agreed to in writing, software        *
  * distributed under the License is distributed on an "AS IS" BASIS,          *
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import com.decathlon.ara.configuration.AraConfiguration;
+import com.decathlon.ara.configuration.FileAssetServiceConfig;
 
 /**
  * Write to disk (can be a NFS mount-point or a Docker mounted volume binding... this is transparent) parts of the data
@@ -39,12 +39,11 @@ public class FileAssetService implements AssetService {
 
     private static final Logger LOG = LoggerFactory.getLogger(FileAssetService.class);
 
-    private final AraConfiguration araConfiguration;
-
+    private final FileAssetServiceConfig fileConfig;
     private final FileNameService fileNameService;
 
-    public FileAssetService(AraConfiguration araConfiguration, FileNameService fileNameService) {
-        this.araConfiguration = araConfiguration;
+    public FileAssetService(FileAssetServiceConfig fileConfig, FileNameService fileNameService) {
+        this.fileConfig = fileConfig;
         this.fileNameService = fileNameService;
     }
 
@@ -62,15 +61,15 @@ public class FileAssetService implements AssetService {
             // fileHomeFolder is something like /opt/assets
             // subFolder is something like /screenshots
             // The full path of the folder is then something like /opt/assets/screenshots
-            final String subFolder = araConfiguration.getFileScreenshotSubFolder();
-            final String absoluteFolderPath = araConfiguration.getFileHomeFolder() + subFolder;
+            final String subFolder = fileConfig.getScreenshotSubFolder();
+            final String absoluteFolderPath = fileConfig.getHomeFolder() + subFolder;
             final String fileName = fileNameService.generateReportFileName(scenarioName, "png");
             final File file = new File(absoluteFolderPath + File.separator + fileName);
 
             // Will create directories if they do not exist
             FileUtils.writeByteArrayToFile(file, screenshot);
 
-            return araConfiguration.getFileHttpAccess() + subFolder + "/" + fileName;
+            return fileConfig.getHttpAccess() + subFolder + "/" + fileName;
         } catch (IOException e) {
             LOG.warn("SCENARIO|cucumber|Screenshot saving failed: {}", e.getMessage(), e);
             return null;
@@ -89,15 +88,15 @@ public class FileAssetService implements AssetService {
             // fileHomeFolder is something like /opt/assets
             // subFolder is something like /http-logs
             // The full path of the folder is then something like /opt/assets/http-logs
-            final String subFolder = araConfiguration.getFileHttpLogsSubFolder();
-            final String absoluteFolderPath = araConfiguration.getFileHomeFolder() + subFolder;
+            final String subFolder = fileConfig.getHttpLogsSubFolder();
+            final String absoluteFolderPath = fileConfig.getHomeFolder() + subFolder;
             final String fileName = fileNameService.generateReportFileName("http-log", "html");
             final File file = new File(absoluteFolderPath + File.separator + fileName);
 
             // Will create directories if they do not exist
             FileUtils.write(file, html, StandardCharsets.UTF_8);
 
-            return araConfiguration.getFileHttpAccess() + subFolder + "/" + fileName;
+            return fileConfig.getHttpAccess() + subFolder + "/" + fileName;
         } catch (IOException e) {
             LOG.warn("SCENARIO|cucumber|HTTP log saving failed: {}", e.getMessage(), e);
             return null;
