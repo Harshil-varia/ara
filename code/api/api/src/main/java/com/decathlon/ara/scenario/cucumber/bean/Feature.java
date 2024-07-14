@@ -18,6 +18,8 @@
 package com.decathlon.ara.scenario.cucumber.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.ArrayList;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Feature {
@@ -28,15 +30,11 @@ public class Feature {
     private String description;
     private String keyword;
     private Integer line;
-    private Comment[] comments = new Comment[0];
-    private Element[] elements = new Element[0];
-    private Tag[] tags = new Tag[0];
+    private List<Comment> comments = new ArrayList<>();
+    private List<Element> elements = new ArrayList<>();
+    private List<Tag> tags = new ArrayList<>();
 
     public String getReportFileName() {
-        // Simplified version of
-        // net.masterthought.cucumber.json.Feature.setReportFileName(int jsonFileNo, Configuration configuration) :
-        // * no support for multiple report.json files (we do not use that)
-        // * nor for parallel execution by official Maven plugin (we use our Cucumber fork managing parallelism more efficiently and effectively)
         return uri.replaceAll("[^\\d\\w]", "-") + ".html";
     }
 
@@ -64,16 +62,27 @@ public class Feature {
         return line;
     }
 
-    public Comment[] getComments() {
+    public List<Comment> getComments() {
         return comments;
     }
 
-    public Element[] getElements() {
+    public List<Element> getElements() {
         return elements;
     }
 
-    public Tag[] getTags() {
+    public List<Tag> getTags() {
         return tags;
     }
 
+    public void addComment(Comment comment) {
+        comments.add(comment);
+    }
+
+    public void addElement(Element element) {
+        elements.add(element);
+    }
+
+    public void addTag(Tag tag) {
+        tags.add(tag);
+    }
 }
