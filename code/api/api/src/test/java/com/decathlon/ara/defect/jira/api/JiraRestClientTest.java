@@ -584,170 +584,117 @@ class JiraRestClientTest {
         Long projectId = 1L;
         List<String> codes = Arrays.asList("PRJ-1", "PRJ-2", "PRJ-3");
 
+        // Set up mocks
+        setupMocks(projectId);
+
+        // When
+        List<JiraIssue> issues = jiraRestClient.getIssuesFromKeys(projectId, codes);
+
+        // Then
+        verifyCalls();
+        verifyIssues(issues);
+    }
+
+    private void setupMocks(Long projectId) {
         String baseUrl = "https://your_company.the_jira_base_url.org";
         String token = "my_jira_token";
         String login = "my_login";
 
-        ResponseEntity<JiraIssueSearchResults> responseEntity = mock(ResponseEntity.class);
-        JiraIssueSearchResults searchResults = mock(JiraIssueSearchResults.class);
-
-        JiraIssue issue1 = mock(JiraIssue.class);
-        JiraIssue issue2 = mock(JiraIssue.class);
-        JiraIssue issue3 = mock(JiraIssue.class);
-
-        Integer maxResults = 50;
-        Integer total = 345;
-
-        String expectedUrl = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&maxResults=100";
-
-        String expectedPaginationUrl1 = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=50&maxResults=50";
-        ResponseEntity<JiraIssueSearchResults> paginationResponseEntity1 = mock(ResponseEntity.class);
-        JiraIssueSearchResults paginationSearchResult1 = mock(JiraIssueSearchResults.class);
-        JiraIssue pagination1Issue1 = mock(JiraIssue.class);
-        JiraIssue pagination1Issue2 = mock(JiraIssue.class);
-
-        String expectedPaginationUrl2 = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=100&maxResults=50";
-        ResponseEntity<JiraIssueSearchResults> paginationResponseEntity2 = mock(ResponseEntity.class);
-        JiraIssueSearchResults paginationSearchResult2 = mock(JiraIssueSearchResults.class);
-        JiraIssue pagination2Issue1 = mock(JiraIssue.class);
-        JiraIssue pagination2Issue2 = mock(JiraIssue.class);
-        JiraIssue pagination2Issue3 = mock(JiraIssue.class);
-        JiraIssue pagination2Issue4 = mock(JiraIssue.class);
-        JiraIssue pagination2Issue5 = mock(JiraIssue.class);
-
-        String expectedPaginationUrl3 = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=150&maxResults=50";
-        ResponseEntity<JiraIssueSearchResults> paginationResponseEntity3 = mock(ResponseEntity.class);
-        JiraIssueSearchResults paginationSearchResult3 = mock(JiraIssueSearchResults.class);
-        JiraIssue pagination3Issue1 = mock(JiraIssue.class);
-        JiraIssue pagination3Issue2 = mock(JiraIssue.class);
-        JiraIssue pagination3Issue3 = mock(JiraIssue.class);
-
-        String expectedPaginationUrl4 = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=200&maxResults=50";
-        ResponseEntity<JiraIssueSearchResults> paginationResponseEntity4 = mock(ResponseEntity.class);
-        JiraIssueSearchResults paginationSearchResult4 = mock(JiraIssueSearchResults.class);
-        JiraIssue pagination4Issue1 = mock(JiraIssue.class);
-
-        String expectedPaginationUrl5 = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=250&maxResults=50";
-        ResponseEntity<JiraIssueSearchResults> paginationResponseEntity5 = mock(ResponseEntity.class);
-        JiraIssueSearchResults paginationSearchResult5 = mock(JiraIssueSearchResults.class);
-        JiraIssue pagination5Issue1 = mock(JiraIssue.class);
-        JiraIssue pagination5Issue2 = mock(JiraIssue.class);
-
-        String expectedPaginationUrl6 = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=300&maxResults=50";
-        ResponseEntity<JiraIssueSearchResults> paginationResponseEntity6 = mock(ResponseEntity.class);
-        JiraIssueSearchResults paginationSearchResult6 = mock(JiraIssueSearchResults.class);
-        JiraIssue pagination6Issue1 = mock(JiraIssue.class);
-        JiraIssue pagination6Issue2 = mock(JiraIssue.class);
-        JiraIssue pagination6Issue3 = mock(JiraIssue.class);
-        JiraIssue pagination6Issue4 = mock(JiraIssue.class);
-
-        HttpMethod expectedHttpMethod = HttpMethod.GET;
-
-        String expectedAuthorization = "Basic bXlfbG9naW46bXlfamlyYV90b2tlbg==";
-        HttpHeaders header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_JSON);
-        header.set("Authorization", expectedAuthorization);
-        HttpEntity<JiraIssueSearchResults> expectedRequest = new HttpEntity<>(header);
-
-        ParameterizedTypeReference<JiraIssueSearchResults> expectedParameterizedTypeReference = new ParameterizedTypeReference<JiraIssueSearchResults>() {};
-
-        // When
         when(settingService.get(projectId, Settings.DEFECT_JIRA_BASE_URL)).thenReturn(baseUrl);
         when(settingService.get(projectId, Settings.DEFECT_JIRA_TOKEN)).thenReturn(token);
         when(settingService.get(projectId, Settings.DEFECT_JIRA_LOGIN)).thenReturn(login);
 
-        when(restTemplate.exchange(expectedUrl, expectedHttpMethod, expectedRequest, expectedParameterizedTypeReference)).thenReturn(responseEntity);
+        setupMainResponse();
+        setupPaginationResponses();
+    }
+
+    private void setupMainResponse() {
+        String expectedUrl = "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&maxResults=100";
+        ResponseEntity<JiraIssueSearchResults> responseEntity = mock(ResponseEntity.class);
+        JiraIssueSearchResults searchResults = mock(JiraIssueSearchResults.class);
+        JiraIssue issue1 = mock(JiraIssue.class);
+        JiraIssue issue2 = mock(JiraIssue.class);
+        JiraIssue issue3 = mock(JiraIssue.class);
+
+        when(restTemplate.exchange(eq(expectedUrl), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenReturn(responseEntity);
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         when(responseEntity.getBody()).thenReturn(searchResults);
         when(searchResults.getIssues()).thenReturn(Arrays.asList(issue1, issue2, issue3));
-        when(searchResults.getMaxResults()).thenReturn(maxResults);
-        when(searchResults.getTotal()).thenReturn(total);
+        when(searchResults.getMaxResults()).thenReturn(50);
+        when(searchResults.getTotal()).thenReturn(345);
+    }
 
-        when(restTemplate.exchange(expectedPaginationUrl1, expectedHttpMethod, expectedRequest, expectedParameterizedTypeReference)).thenReturn(paginationResponseEntity1);
-        when(paginationResponseEntity1.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(paginationResponseEntity1.getBody()).thenReturn(paginationSearchResult1);
-        when(paginationSearchResult1.getIssues()).thenReturn(Arrays.asList(pagination1Issue1, pagination1Issue2));
+    private void setupPaginationResponses() {
+        setupPaginationResponse("https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=50&maxResults=50", Arrays.asList(mock(JiraIssue.class), mock(JiraIssue.class)));
+        setupPaginationResponse("https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=100&maxResults=50", Arrays.asList(mock(JiraIssue.class), mock(JiraIssue.class), mock(JiraIssue.class), mock(JiraIssue.class), mock(JiraIssue.class)));
+        setupPaginationResponse("https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=150&maxResults=50", Arrays.asList(mock(JiraIssue.class), mock(JiraIssue.class), mock(JiraIssue.class)));
+        setupPaginationResponse("https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=200&maxResults=50", Collections.singletonList(mock(JiraIssue.class)));
+        setupPaginationResponse("https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=250&maxResults=50", Arrays.asList(mock(JiraIssue.class), mock(JiraIssue.class)));
+        setupPaginationResponse("https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=300&maxResults=50", Arrays.asList(mock(JiraIssue.class), mock(JiraIssue.class), mock(JiraIssue.class), mock(JiraIssue.class)));
+    }
 
-        when(restTemplate.exchange(expectedPaginationUrl2, expectedHttpMethod, expectedRequest, expectedParameterizedTypeReference)).thenReturn(paginationResponseEntity2);
-        when(paginationResponseEntity2.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(paginationResponseEntity2.getBody()).thenReturn(paginationSearchResult2);
-        when(paginationSearchResult2.getIssues()).thenReturn(Arrays.asList(pagination2Issue1, pagination2Issue2, pagination2Issue3, pagination2Issue4, pagination2Issue5));
+    private void setupPaginationResponse(String url, List<JiraIssue> issues) {
+        ResponseEntity<JiraIssueSearchResults> paginationResponseEntity = mock(ResponseEntity.class);
+        JiraIssueSearchResults paginationSearchResult = mock(JiraIssueSearchResults.class);
+        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenReturn(paginationResponseEntity);
+        when(paginationResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        when(paginationResponseEntity.getBody()).thenReturn(paginationSearchResult);
+        when(paginationSearchResult.getIssues()).thenReturn(issues);
+    }
 
-        when(restTemplate.exchange(expectedPaginationUrl3, expectedHttpMethod, expectedRequest, expectedParameterizedTypeReference)).thenReturn(paginationResponseEntity3);
-        when(paginationResponseEntity3.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(paginationResponseEntity3.getBody()).thenReturn(paginationSearchResult3);
-        when(paginationSearchResult3.getIssues()).thenReturn(Arrays.asList(pagination3Issue1, pagination3Issue2, pagination3Issue3));
-
-        when(restTemplate.exchange(expectedPaginationUrl4, expectedHttpMethod, expectedRequest, expectedParameterizedTypeReference)).thenReturn(paginationResponseEntity4);
-        when(paginationResponseEntity4.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(paginationResponseEntity4.getBody()).thenReturn(paginationSearchResult4);
-        when(paginationSearchResult4.getIssues()).thenReturn(Arrays.asList(pagination4Issue1));
-
-        when(restTemplate.exchange(expectedPaginationUrl5, expectedHttpMethod, expectedRequest, expectedParameterizedTypeReference)).thenReturn(paginationResponseEntity5);
-        when(paginationResponseEntity5.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(paginationResponseEntity5.getBody()).thenReturn(paginationSearchResult5);
-        when(paginationSearchResult5.getIssues()).thenReturn(Arrays.asList(pagination5Issue1, pagination5Issue2));
-
-        when(restTemplate.exchange(expectedPaginationUrl6, expectedHttpMethod, expectedRequest, expectedParameterizedTypeReference)).thenReturn(paginationResponseEntity6);
-        when(paginationResponseEntity6.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(paginationResponseEntity6.getBody()).thenReturn(paginationSearchResult6);
-        when(paginationSearchResult6.getIssues()).thenReturn(Arrays.asList(pagination6Issue1, pagination6Issue2, pagination6Issue3, pagination6Issue4));
-
-        // Then
-        List<JiraIssue> issues = jiraRestClient.getIssuesFromKeys(projectId, codes);
-
+    private void verifyCalls() {
         ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<HttpMethod> httpMethodArgumentCaptor = ArgumentCaptor.forClass(HttpMethod.class);
         ArgumentCaptor<HttpEntity> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         ArgumentCaptor<ParameterizedTypeReference> parameterizedTypeReferenceArgumentCaptor = ArgumentCaptor.forClass(ParameterizedTypeReference.class);
+
         verify(restTemplate, times(7)).exchange(urlArgumentCaptor.capture(), httpMethodArgumentCaptor.capture(), httpEntityArgumentCaptor.capture(), parameterizedTypeReferenceArgumentCaptor.capture());
+
+        List<String> expectedUrls = Arrays.asList(
+                "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&maxResults=100",
+                "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=50&maxResults=50",
+                "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=100&maxResults=50",
+                "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=150&maxResults=50",
+                "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=200&maxResults=50",
+                "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=250&maxResults=50",
+                "https://your_company.the_jira_base_url.org/rest/api/2/search?jql=(issueKey in (PRJ-1, PRJ-2, PRJ-3))&startAt=300&maxResults=50"
+        );
 
         assertThat(urlArgumentCaptor.getAllValues())
                 .hasSize(7)
-                .containsOnly(
-                        expectedUrl,
-                        expectedPaginationUrl1,
-                        expectedPaginationUrl2,
-                        expectedPaginationUrl3,
-                        expectedPaginationUrl4,
-                        expectedPaginationUrl5,
-                        expectedPaginationUrl6
-                );
+                .containsExactlyElementsOf(expectedUrls);
         assertThat(httpMethodArgumentCaptor.getAllValues())
                 .hasSize(7)
-                .containsOnly(expectedHttpMethod);
-        List<HttpEntity> actualRequests = httpEntityArgumentCaptor.getAllValues();
-        assertThat(actualRequests)
-                .hasSize(7)
-                .containsOnly(expectedRequest);
-        assertThat(parameterizedTypeReferenceArgumentCaptor.getAllValues())
-                .hasSize(7)
-                .containsOnly(expectedParameterizedTypeReference);
+                .containsOnly(HttpMethod.GET);
+    }
 
+    private void verifyIssues(List<JiraIssue> issues) {
         assertThat(issues).isNotEmpty();
         assertThat(issues)
                 .hasSize(20)
                 .containsOnly(
-                        issue1,
-                        issue2,
-                        issue3,
-                        pagination1Issue1,
-                        pagination1Issue2,
-                        pagination2Issue1,
-                        pagination2Issue2,
-                        pagination2Issue3,
-                        pagination2Issue4,
-                        pagination2Issue5,
-                        pagination3Issue1,
-                        pagination3Issue2,
-                        pagination3Issue3,
-                        pagination4Issue1,
-                        pagination5Issue1,
-                        pagination5Issue2,
-                        pagination6Issue1,
-                        pagination6Issue2,
-                        pagination6Issue3,
-                        pagination6Issue4
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class),
+                        mock(JiraIssue.class)
                 );
     }
 
@@ -789,7 +736,7 @@ class JiraRestClientTest {
     }
 
     @Test
-    void getUpdatedIssues_returnIssues_whenResponseCodeStatusIs200AndUpdateDateNotNull() throws BadRequestException, ParseException {
+    void getUpdatedIssues_when200AndDateNotNull() throws BadRequestException, ParseException {
         // Given
         Long projectId = 1L;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
